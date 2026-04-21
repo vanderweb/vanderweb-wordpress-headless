@@ -10,12 +10,23 @@
  * Text Domain: vanderweb-wordpress-headless
  */
 
+/*
+ * Recommended wp-config.php constants — add these manually on the server.
+ *
+ * define( 'DISALLOW_FILE_EDIT', true );   // Disables the theme/plugin editor in WP admin.
+ * define( 'DISALLOW_FILE_MODS', true );   // Optional: blocks plugin/theme installs from admin.
+ * define( 'WP_DEBUG', false );            // Always false in production.
+ * define( 'FORCE_SSL_ADMIN', true );      // Forces HTTPS for all admin and login pages.
+ */
+
 defined( 'ABSPATH' ) || exit;
 
 define( 'VANDER_PLUGIN_VERSION', '1.0.0' );
 define( 'VANDER_PLUGIN_PATH', plugin_dir_path( __FILE__ ) );
 define( 'VANDER_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 
+require_once VANDER_PLUGIN_PATH . 'includes/security-helpers.php';
+require_once VANDER_PLUGIN_PATH . 'includes/rest-security.php';
 require_once VANDER_PLUGIN_PATH . 'includes/section-definitions.php';
 require_once VANDER_PLUGIN_PATH . 'includes/register-meta.php';
 require_once VANDER_PLUGIN_PATH . 'includes/rest-api.php';
