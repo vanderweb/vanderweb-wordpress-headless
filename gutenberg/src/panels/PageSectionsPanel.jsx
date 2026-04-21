@@ -51,6 +51,7 @@ export default function PageSectionsPanel() {
 			name="vander-page-sections"
 			title="Page Sections"
 			className="vander-sections-panel"
+			initialOpen={ true }
 		>
 			<SectionList
 				sections={ sections }
