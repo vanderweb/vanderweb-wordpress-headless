@@ -3,15 +3,20 @@ defined( 'ABSPATH' ) || exit;
 
 /**
  * Allowed CORS origins for the Vander headless frontend.
- * Update this list when adding staging or preview environments.
+ *
+ * Override per site by defining VANDER_CORS_ORIGINS in wp-config.php
+ * as a comma-separated string before the plugin loads:
+ *
+ *   define( 'VANDER_CORS_ORIGINS', 'https://mysite.com,https://www.mysite.com,http://localhost:3000' );
+ *
+ * If the constant is not defined the plugin falls back to an empty list,
+ * which blocks all cross-origin requests until origins are configured.
  */
 define(
 	'VANDER_ALLOWED_ORIGINS',
-	[
-		'https://vander.dk',
-		'https://www.vander.dk',
-		'http://localhost:3000', // Dev only — remove in production.
-	]
+	defined( 'VANDER_CORS_ORIGINS' )
+		? array_filter( array_map( 'trim', explode( ',', VANDER_CORS_ORIGINS ) ) )
+		: []
 );
 
 /**
