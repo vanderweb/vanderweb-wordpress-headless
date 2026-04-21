@@ -4,40 +4,69 @@ defined( 'ABSPATH' ) || exit;
 add_filter( 'rest_prepare_page', 'vander_prepare_page_sections', 10, 2 );
 add_action( 'rest_api_init', 'vander_register_rest_routes' );
 
+/**
+ * Decodes and enriches the page_sections meta field before it leaves the REST response.
+ *
+ * Image attachment IDs and case post IDs are resolved to full objects so the
+ * frontend never needs to make additional API requests.
+ *
+ * @since 1.0.0
+ * @param WP_REST_Response $response The response object.
+ * @param WP_Post          $post     The post being prepared.
+ * @return WP_REST_Response
+ */
 function vander_prepare_page_sections( WP_REST_Response $response, WP_Post $post ): WP_REST_Response {
-	$raw     = get_post_meta( $post->ID, 'page_sections', true );
-	$decoded = json_decode( $raw ?: '[]', true );
+	$raw      = get_post_meta( $post->ID, 'page_sections', true );
+	$decoded  = json_decode( $raw ?: '[]', true );
 	$sections = is_array( $decoded ) ? $decoded : [];
+
 	$response->data['page_sections'] = vander_enrich_sections( $sections );
+
 	return $response;
 }
 
+/**
+ * Enriches each section in the array using its type definition.
+ *
+ * @since 1.0.0
+ * @param array<int, array<string, mixed>> $sections Raw sections from post meta.
+ * @return array<int, array<string, mixed>>
+ */
 function vander_enrich_sections( array $sections ): array {
 	$type_map = array_column( vander_get_section_types(), null, 'type' );
 
-	return array_map( function( array $section ) use ( $type_map ): array {
-		$fields = $type_map[ $section['type'] ]['fields'] ?? [];
-		return vander_enrich_fields( $section, $fields );
-	}, $sections );
+	return array_map(
+		function( array $section ) use ( $type_map ): array {
+			$fields = $type_map[ $section['type'] ]['fields'] ?? [];
+			return vander_enrich_fields( $section, $fields );
+		},
+		$sections
+	);
 }
 
+/**
+ * Recursively resolves image and post fields within a section data array.
+ *
+ * @since 1.0.0
+ * @param array<string, mixed>             $data       Section or repeater row data.
+ * @param array<int, array<string, mixed>> $field_defs Field definitions for this level.
+ * @return array<string, mixed>
+ */
 function vander_enrich_fields( array $data, array $field_defs ): array {
 	foreach ( $field_defs as $field ) {
 		$key   = $field['key'];
 		$value = $data[ $key ] ?? null;
 
-		if ( $field['type'] === 'image' ) {
-			$data[ $key ] = is_numeric( $value ) && (int) $value > 0
-				? vander_resolve_image( (int) $value )
-				: null;
+		if ( 'image' === $field['type'] ) {
+			$image_id     = absint( $value );
+			$data[ $key ] = $image_id > 0 ? vander_resolve_image( $image_id ) : null;
 
-		} elseif ( $field['type'] === 'post' ) {
-			$data[ $key ] = is_numeric( $value ) && (int) $value > 0
-				? vander_resolve_case_post( (int) $value )
-				: null;
+		} elseif ( 'post' === $field['type'] ) {
+			$post_id      = absint( $value );
+			$data[ $key ] = $post_id > 0 ? vander_resolve_case_post( $post_id ) : null;
 
-		} elseif ( $field['type'] === 'repeater' && is_array( $value ) ) {
-			$sub_fields = $field['fields'] ?? [];
+		} elseif ( 'repeater' === $field['type'] && is_array( $value ) ) {
+			$sub_fields   = $field['fields'] ?? [];
 			$data[ $key ] = array_map(
 				fn( array $row ): array => vander_enrich_fields( $row, $sub_fields ),
 				$value
@@ -48,6 +77,13 @@ function vander_enrich_fields( array $data, array $field_defs ): array {
 	return $data;
 }
 
+/**
+ * Resolves an attachment ID to a minimal image object.
+ *
+ * @since 1.0.0
+ * @param int $id Attachment post ID.
+ * @return array<string, mixed>
+ */
 function vander_resolve_image( int $id ): array {
 	return [
 		'id'  => $id,
@@ -56,14 +92,22 @@ function vander_resolve_image( int $id ): array {
 	];
 }
 
+/**
+ * Resolves a post ID to a summary object for use in the cases section.
+ *
+ * @since 1.0.0
+ * @param int $id Post ID.
+ * @return array<string, mixed>|null Null if the post does not exist or is not published.
+ */
 function vander_resolve_case_post( int $id ): ?array {
 	$post = get_post( $id );
-	if ( ! $post || $post->post_status !== 'publish' ) {
+
+	if ( ! $post instanceof WP_Post || 'publish' !== $post->post_status ) {
 		return null;
 	}
 
 	$thumbnail_id  = get_post_thumbnail_id( $post );
-	$thumbnail_url = $thumbnail_id ? wp_get_attachment_image_url( $thumbnail_id, 'large' ) : '';
+	$thumbnail_url = $thumbnail_id ? wp_get_attachment_image_url( absint( $thumbnail_id ), 'large' ) : '';
 
 	return [
 		'id'            => $post->ID,
@@ -74,6 +118,11 @@ function vander_resolve_case_post( int $id ): ?array {
 	];
 }
 
+/**
+ * Registers custom REST API routes for settings and section types.
+ *
+ * @since 1.0.0
+ */
 function vander_register_rest_routes(): void {
 	register_rest_route(
 		'vander/v1',
@@ -103,6 +152,12 @@ function vander_register_rest_routes(): void {
 	);
 }
 
+/**
+ * Returns all plugin settings as a REST response.
+ *
+ * @since 1.0.0
+ * @return WP_REST_Response
+ */
 function vander_get_settings(): WP_REST_Response {
 	return rest_ensure_response( [
 		'general' => vander_decode_option( 'vander_general' ),
@@ -111,11 +166,17 @@ function vander_get_settings(): WP_REST_Response {
 	] );
 }
 
+/**
+ * Saves one or more settings groups from a REST request body.
+ *
+ * @since 1.0.0
+ * @param WP_REST_Request $request The incoming REST request.
+ * @return WP_REST_Response
+ */
 function vander_save_settings( WP_REST_Request $request ): WP_REST_Response {
-	$body = $request->get_json_params();
-
+	$body    = $request->get_json_params();
 	$allowed = [ 'general', 'header', 'footer' ];
-	$updated  = [];
+	$updated = [];
 
 	foreach ( $allowed as $key ) {
 		if ( ! isset( $body[ $key ] ) ) {
@@ -135,8 +196,16 @@ function vander_save_settings( WP_REST_Request $request ): WP_REST_Response {
 	] );
 }
 
+/**
+ * Decodes a JSON option value into an array.
+ *
+ * @since 1.0.0
+ * @param string $option_key The option name.
+ * @return array<string, mixed>
+ */
 function vander_decode_option( string $option_key ): array {
 	$raw     = get_option( $option_key, '{}' );
 	$decoded = json_decode( $raw, true );
+
 	return is_array( $decoded ) ? $decoded : [];
 }

@@ -3,6 +3,11 @@ defined( 'ABSPATH' ) || exit;
 
 add_action( 'init', 'vander_register_meta' );
 
+/**
+ * Registers post meta and plugin options.
+ *
+ * @since 1.0.0
+ */
 function vander_register_meta(): void {
 	register_post_meta(
 		'page',
@@ -69,6 +74,13 @@ function vander_register_meta(): void {
 	);
 }
 
+/**
+ * Sanitizes a JSON string or array before storing it as an option.
+ *
+ * @since 1.0.0
+ * @param mixed $value Raw value from the settings form or REST request.
+ * @return string Valid JSON string, or '{}' on decode failure.
+ */
 function vander_sanitize_json_option( mixed $value ): string {
 	if ( is_array( $value ) ) {
 		return wp_json_encode( $value );
@@ -76,7 +88,7 @@ function vander_sanitize_json_option( mixed $value ): string {
 
 	$decoded = json_decode( $value, true );
 
-	if ( json_last_error() !== JSON_ERROR_NONE ) {
+	if ( JSON_ERROR_NONE !== json_last_error() ) {
 		return '{}';
 	}
 

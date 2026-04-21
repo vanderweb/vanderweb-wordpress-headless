@@ -1,18 +1,27 @@
 <?php
 defined( 'ABSPATH' ) || exit;
 
+/**
+ * Returns the registered section type definitions.
+ *
+ * Each entry has a `type` slug, a human-readable `label`, and a `fields`
+ * array describing the editable fields for that section type.
+ *
+ * @since 1.0.0
+ * @return array<int, array<string, mixed>>
+ */
 function vander_get_section_types(): array {
 	return [
 		[
 			'type'   => 'hero',
 			'label'  => 'Hero',
 			'fields' => [
-				[ 'key' => 'heading',          'label' => 'Heading',           'type' => 'text'   ],
-				[ 'key' => 'subheading',        'label' => 'Subheading',        'type' => 'text'   ],
-				[ 'key' => 'cta_label',         'label' => 'CTA Label',         'type' => 'text'   ],
-				[ 'key' => 'cta_url',           'label' => 'CTA URL',           'type' => 'text'   ],
-				[ 'key' => 'background_image',  'label' => 'Background Image',  'type' => 'image'  ],
-				[ 'key' => 'overlay_opacity',   'label' => 'Overlay Opacity',   'type' => 'number' ],
+				[ 'key' => 'heading',         'label' => 'Heading',          'type' => 'text'   ],
+				[ 'key' => 'subheading',       'label' => 'Subheading',       'type' => 'text'   ],
+				[ 'key' => 'cta_label',        'label' => 'CTA Label',        'type' => 'text'   ],
+				[ 'key' => 'cta_url',          'label' => 'CTA URL',          'type' => 'text'   ],
+				[ 'key' => 'background_image', 'label' => 'Background Image', 'type' => 'image'  ],
+				[ 'key' => 'overlay_opacity',  'label' => 'Overlay Opacity',  'type' => 'number' ],
 			],
 		],
 		[

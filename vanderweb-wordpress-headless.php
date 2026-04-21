@@ -5,7 +5,9 @@
  * Version: 1.0.0
  * Author: Ulrik Vander
  * Requires PHP: 8.0
- * Text Domain: vander-wp-headless
+ * License: GPL-2.0-or-later
+ * License URI: https://www.gnu.org/licenses/gpl-2.0.html
+ * Text Domain: vanderweb-wordpress-headless
  */
 
 defined( 'ABSPATH' ) || exit;
@@ -21,6 +23,11 @@ require_once VANDER_PLUGIN_PATH . 'admin/admin-menu.php';
 
 add_action( 'enqueue_block_editor_assets', 'vander_enqueue_editor_assets' );
 
+/**
+ * Enqueues the compiled Gutenberg bundle on block editor screens.
+ *
+ * @since 1.0.0
+ */
 function vander_enqueue_editor_assets(): void {
 	$asset_file = VANDER_PLUGIN_PATH . 'gutenberg/build/index.asset.php';
 

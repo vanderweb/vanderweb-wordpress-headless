@@ -1,0 +1,20 @@
+{
+	"name": "vanderweb/vanderweb-wordpress-headless",
+	"description": "Flexible page sections and site settings for headless Nuxt 3 frontend",
+	"type": "wordpress-plugin",
+	"license": "GPL-2.0-or-later",
+	"require": {
+		"php": ">=8.0"
+	},
+	"require-dev": {
+		"php-stubs/wordpress-stubs": "^6.0",
+		"wp-coding-standards/wpcs": "^3.0",
+		"phpcsstandards/phpcsutils": "*",
+		"dealerdirect/phpcodesniffer-composer-installer": "*"
+	},
+	"config": {
+		"allow-plugins": {
+			"dealerdirect/phpcodesniffer-composer-installer": true
+		}
+	}
+}

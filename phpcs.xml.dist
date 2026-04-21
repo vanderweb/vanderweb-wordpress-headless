@@ -1,0 +1,34 @@
+<?xml version="1.0"?>
+<ruleset name="VanderWeb WordPress Headless">
+	<description>WordPress Coding Standards for VanderWeb WordPress Headless plugin.</description>
+
+	<!-- Scan these files and directories -->
+	<file>.</file>
+
+	<!-- Exclude non-plugin directories -->
+	<exclude-pattern>*/gutenberg/node_modules/*</exclude-pattern>
+	<exclude-pattern>*/gutenberg/build/*</exclude-pattern>
+	<exclude-pattern>*/vendor/*</exclude-pattern>
+
+	<!-- Use WordPress Coding Standards -->
+	<rule ref="WordPress">
+		<!-- Allow short array syntax [] — WPCS allows this since WordPress 5.3+ -->
+		<exclude name="Universal.Arrays.DisallowShortArraySyntax"/>
+	</rule>
+
+	<!-- Plugin-specific config -->
+	<rule ref="WordPress.WP.I18n">
+		<properties>
+			<property name="text_domain" type="array" value="vanderweb-wordpress-headless"/>
+		</properties>
+	</rule>
+
+	<rule ref="WordPress.NamingConventions.PrefixAllGlobals">
+		<properties>
+			<property name="prefixes" type="array" value="vander,VANDER"/>
+		</properties>
+	</rule>
+
+	<!-- PHP version -->
+	<config name="testVersion" value="8.0-"/>
+</ruleset>

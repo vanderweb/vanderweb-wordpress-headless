@@ -4,6 +4,11 @@ defined( 'ABSPATH' ) || exit;
 add_action( 'admin_menu', 'vander_register_admin_menu' );
 add_action( 'admin_enqueue_scripts', 'vander_enqueue_admin_assets' );
 
+/**
+ * Registers the Vander Headless top-level menu and its subpages.
+ *
+ * @since 1.0.0
+ */
 function vander_register_admin_menu(): void {
 	add_menu_page(
 		'Vander Headless',
@@ -43,6 +48,12 @@ function vander_register_admin_menu(): void {
 	);
 }
 
+/**
+ * Enqueues the admin bundle only on Vander Headless settings pages.
+ *
+ * @since 1.0.0
+ * @param string $hook The current admin page hook suffix.
+ */
 function vander_enqueue_admin_assets( string $hook ): void {
 	$vander_pages = [
 		'toplevel_page_vander-headless',
@@ -80,14 +91,29 @@ function vander_enqueue_admin_assets( string $hook ): void {
 	wp_localize_script( 'vander-admin', 'vanderSectionTypes', vander_get_section_types() );
 }
 
+/**
+ * Renders the General Settings admin page.
+ *
+ * @since 1.0.0
+ */
 function vander_render_general_settings(): void {
 	require_once VANDER_PLUGIN_PATH . 'admin/settings-general.php';
 }
 
+/**
+ * Renders the Header Settings admin page.
+ *
+ * @since 1.0.0
+ */
 function vander_render_header_settings(): void {
 	require_once VANDER_PLUGIN_PATH . 'admin/settings-header.php';
 }
 
+/**
+ * Renders the Footer Settings admin page.
+ *
+ * @since 1.0.0
+ */
 function vander_render_footer_settings(): void {
 	require_once VANDER_PLUGIN_PATH . 'admin/settings-footer.php';
 }
