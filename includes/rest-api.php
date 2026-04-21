@@ -150,18 +150,85 @@ function vander_register_rest_routes(): void {
 			'permission_callback' => '__return_true',
 		]
 	);
+
+	register_rest_route(
+		'vander/v1',
+		'/menus',
+		[
+			'methods'             => WP_REST_Server::READABLE,
+			'callback'            => 'vander_get_menus',
+			'permission_callback' => fn() => current_user_can( 'manage_options' ),
+		]
+	);
+}
+
+/**
+ * Returns all registered WordPress navigation menus.
+ *
+ * @since 1.0.0
+ * @return WP_REST_Response
+ */
+function vander_get_menus(): WP_REST_Response {
+	$menus = wp_get_nav_menus();
+
+	$data = array_map(
+		fn( WP_Term $menu ): array => [
+			'id'    => $menu->term_id,
+			'name'  => $menu->name,
+			'count' => $menu->count,
+		],
+		is_array( $menus ) ? $menus : []
+	);
+
+	return rest_ensure_response( $data );
+}
+
+/**
+ * Resolves a nav menu's items into the navLinks array format.
+ *
+ * @since 1.0.0
+ * @param int $menu_id WordPress nav menu term ID.
+ * @return array<int, array<string, mixed>>
+ */
+function vander_resolve_nav_menu( int $menu_id ): array {
+	$items = wp_get_nav_menu_items( $menu_id );
+
+	if ( ! is_array( $items ) ) {
+		return [];
+	}
+
+	return array_values(
+		array_map(
+			fn( WP_Post $item ): array => [
+				'label'  => $item->title,
+				'url'    => $item->url,
+				'target' => '_blank' === $item->target,
+			],
+			$items
+		)
+	);
 }
 
 /**
  * Returns all plugin settings as a REST response.
  *
+ * When the header setting has a menuId set, the nav menu items are resolved
+ * and returned as navLinks so the frontend never needs a separate menu request.
+ *
  * @since 1.0.0
  * @return WP_REST_Response
  */
 function vander_get_settings(): WP_REST_Response {
+	$header  = vander_decode_option( 'vander_header' );
+	$menu_id = absint( $header['menuId'] ?? 0 );
+
+	if ( $menu_id > 0 ) {
+		$header['navLinks'] = vander_resolve_nav_menu( $menu_id );
+	}
+
 	return rest_ensure_response( [
 		'general' => vander_decode_option( 'vander_general' ),
-		'header'  => vander_decode_option( 'vander_header' ),
+		'header'  => $header,
 		'footer'  => vander_decode_option( 'vander_footer' ),
 	] );
 }

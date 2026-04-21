@@ -1,5 +1,5 @@
 import { useSelect, useDispatch } from '@wordpress/data';
-import { PluginDocumentSettingPanel } from '@wordpress/edit-post';
+import { PluginDocumentSettingPanel } from '@wordpress/editor';
 import { useState } from '@wordpress/element';
 import { Button, SelectControl } from '@wordpress/components';
 import SectionList from '../components/SectionList';

@@ -1,10 +1,11 @@
 import { useState, useEffect } from '@wordpress/element';
 import apiFetch from '@wordpress/api-fetch';
-import { TextControl, ToggleControl, Button, Notice, Panel, PanelBody } from '@wordpress/components';
+import { TextControl, ToggleControl, SelectControl, Button, Notice, Panel, PanelBody } from '@wordpress/components';
 
 const DEFAULTS = {
 	logoUrl:           '',
 	logoAlt:           '',
+	menuId:            0,
 	navLinks:          [],
 	ctaLabel:          '',
 	ctaUrl:            '',
@@ -16,6 +17,7 @@ const EMPTY_NAV_LINK = { label: '', url: '', target: false };
 
 export default function HeaderSettingsPage() {
 	const [ settings, setSettings ] = useState( DEFAULTS );
+	const [ menus, setMenus ]       = useState( [] );
 	const [ notice, setNotice ]     = useState( null );
 	const [ saving, setSaving ]     = useState( false );
 
@@ -25,6 +27,10 @@ export default function HeaderSettingsPage() {
 		} ).catch( () => {
 			setNotice( { type: 'error', message: 'Failed to load settings.' } );
 		} );
+
+		apiFetch( { path: '/vander/v1/menus' } ).then( ( data ) => {
+			setMenus( data ?? [] );
+		} ).catch( () => {} );
 	}, [] );
 
 	const set = ( key ) => ( value ) => setSettings( ( prev ) => ( { ...prev, [ key ]: value } ) );
@@ -38,16 +44,12 @@ export default function HeaderSettingsPage() {
 		} ) );
 	};
 
-	const addNavLink = () => setSettings( ( prev ) => ( { ...prev, navLinks: [ ...prev.navLinks, { ...EMPTY_NAV_LINK } ] } ) );
-
-	const removeNavLink = ( index ) => setSettings( ( prev ) => ( {
-		...prev,
-		navLinks: prev.navLinks.filter( ( _, i ) => i !== index ),
-	} ) );
+	const addNavLink    = () => setSettings( ( prev ) => ( { ...prev, navLinks: [ ...prev.navLinks, { ...EMPTY_NAV_LINK } ] } ) );
+	const removeNavLink = ( index ) => setSettings( ( prev ) => ( { ...prev, navLinks: prev.navLinks.filter( ( _, i ) => i !== index ) } ) );
 
 	const moveNavLink = ( index, direction ) => {
 		setSettings( ( prev ) => {
-			const next = [ ...prev.navLinks ];
+			const next   = [ ...prev.navLinks ];
 			const target = index + direction;
 			if ( target < 0 || target >= next.length ) return prev;
 			[ next[ index ], next[ target ] ] = [ next[ target ], next[ index ] ];
@@ -69,6 +71,13 @@ export default function HeaderSettingsPage() {
 		} ).finally( () => setSaving( false ) );
 	};
 
+	const menuOptions = [
+		{ label: '— Manual links —', value: 0 },
+		...menus.map( ( m ) => ( { label: m.name, value: m.id } ) ),
+	];
+
+	const usingMenu = Number( settings.menuId ) > 0;
+
 	return (
 		<div className="vander-settings-page">
 			<h1>Header Settings</h1>
@@ -83,20 +92,35 @@ export default function HeaderSettingsPage() {
 					<TextControl label="Logo Alt" value={ settings.logoAlt } onChange={ set( 'logoAlt' ) } />
 				</PanelBody>
 
-				<PanelBody title="Navigation Links" initialOpen>
-					{ settings.navLinks.map( ( link, index ) => (
-						<div key={ index } className="vander-repeater__row">
-							<div className="vander-repeater__row-controls">
-								<Button variant="tertiary" size="small" onClick={ () => moveNavLink( index, -1 ) } disabled={ index === 0 }>↑</Button>
-								<Button variant="tertiary" size="small" onClick={ () => moveNavLink( index, 1 ) } disabled={ index === settings.navLinks.length - 1 }>↓</Button>
-								<Button variant="link" isDestructive size="small" onClick={ () => removeNavLink( index ) }>Remove</Button>
-							</div>
-							<TextControl  label="Label"          value={ link.label }  onChange={ ( v ) => setNavLink( index, 'label', v ) } />
-							<TextControl  label="URL"            value={ link.url }    onChange={ ( v ) => setNavLink( index, 'url', v ) } />
-							<ToggleControl label="Open in new tab" checked={ link.target } onChange={ ( v ) => setNavLink( index, 'target', v ) } />
-						</div>
-					) ) }
-					<Button variant="secondary" onClick={ addNavLink }>Add Nav Link</Button>
+				<PanelBody title="Navigation" initialOpen>
+					<SelectControl
+						label="WordPress Menu"
+						value={ Number( settings.menuId ) }
+						options={ menuOptions }
+						onChange={ ( v ) => set( 'menuId' )( Number( v ) ) }
+					/>
+					{ usingMenu && (
+						<p style={ { color: '#757575', fontSize: '12px', marginTop: '4px' } }>
+							Menu items are resolved automatically from the selected WordPress menu.
+						</p>
+					) }
+					{ ! usingMenu && (
+						<>
+							{ settings.navLinks.map( ( link, index ) => (
+								<div key={ index } className="vander-repeater__row">
+									<div className="vander-repeater__row-controls">
+										<Button variant="tertiary" size="small" onClick={ () => moveNavLink( index, -1 ) } disabled={ index === 0 }>↑</Button>
+										<Button variant="tertiary" size="small" onClick={ () => moveNavLink( index, 1 ) } disabled={ index === settings.navLinks.length - 1 }>↓</Button>
+										<Button variant="link" isDestructive size="small" onClick={ () => removeNavLink( index ) }>Remove</Button>
+									</div>
+									<TextControl  label="Label"          value={ link.label }  onChange={ ( v ) => setNavLink( index, 'label', v ) } />
+									<TextControl  label="URL"            value={ link.url }    onChange={ ( v ) => setNavLink( index, 'url', v ) } />
+									<ToggleControl label="Open in new tab" checked={ link.target } onChange={ ( v ) => setNavLink( index, 'target', v ) } />
+								</div>
+							) ) }
+							<Button variant="secondary" onClick={ addNavLink }>Add Nav Link</Button>
+						</>
+					) }
 				</PanelBody>
 
 				<PanelBody title="CTA Button" initialOpen={ false }>
