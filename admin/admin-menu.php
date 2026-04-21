@@ -5,45 +5,45 @@ add_action( 'admin_menu', 'vander_register_admin_menu' );
 add_action( 'admin_enqueue_scripts', 'vander_enqueue_admin_assets' );
 
 /**
- * Registers the Vander Headless top-level menu and its subpages.
+ * Registers the VanderWeb Headless top-level menu and its subpages.
  *
  * @since 1.0.0
  */
 function vander_register_admin_menu(): void {
 	add_menu_page(
-		'Vander Headless',
-		'Vander Headless',
+		'VanderWeb Headless',
+		'VanderWeb Headless',
 		'manage_options',
-		'vander-headless',
+		'vanderweb-headless',
 		'vander_render_general_settings',
 		'dashicons-superhero-alt',
 		60
 	);
 
 	add_submenu_page(
-		'vander-headless',
+		'vanderweb-headless',
 		'General Settings',
 		'General Settings',
 		'manage_options',
-		'vander-headless',
+		'vanderweb-headless',
 		'vander_render_general_settings'
 	);
 
 	add_submenu_page(
-		'vander-headless',
+		'vanderweb-headless',
 		'Header Settings',
 		'Header Settings',
 		'manage_options',
-		'vander-header-settings',
+		'vanderweb-header-settings',
 		'vander_render_header_settings'
 	);
 
 	add_submenu_page(
-		'vander-headless',
+		'vanderweb-headless',
 		'Footer Settings',
 		'Footer Settings',
 		'manage_options',
-		'vander-footer-settings',
+		'vanderweb-footer-settings',
 		'vander_render_footer_settings'
 	);
 }
@@ -56,9 +56,9 @@ function vander_register_admin_menu(): void {
  */
 function vander_enqueue_admin_assets( string $hook ): void {
 	$vander_pages = [
-		'toplevel_page_vander-headless',
-		'vander-headless_page_vander-header-settings',
-		'vander-headless_page_vander-footer-settings',
+		'toplevel_page_vanderweb-headless',
+		'vanderweb-headless_page_vanderweb-header-settings',
+		'vanderweb-headless_page_vanderweb-footer-settings',
 	];
 
 	if ( ! in_array( $hook, $vander_pages, true ) ) {
