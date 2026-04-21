@@ -1,14 +1,18 @@
 import { useState, useEffect } from '@wordpress/element';
 import apiFetch from '@wordpress/api-fetch';
-import { TextControl, ToggleControl, Button, Notice, Panel, PanelBody } from '@wordpress/components';
+import { TextControl, ToggleControl, Button, Notice, Panel, PanelBody, BaseControl } from '@wordpress/components';
 
 const DEFAULTS = {
-	siteName: '',
-	siteDescription: '',
-	logoUrl: '',
-	faviconUrl: '',
+	siteName:          '',
+	siteDescription:   '',
+	logoUrl:           '',
+	faviconUrl:        '',
 	googleAnalyticsId: '',
-	maintenanceMode: false,
+	maintenanceMode:   false,
+	primaryColor:      '#e63329',
+	accentColor:       '#1a1a1a',
+	googleFontsUrl:    '',
+	fontFamily:        'Inter',
 };
 
 export default function GeneralSettingsPage() {
@@ -58,6 +62,42 @@ export default function GeneralSettingsPage() {
 				<PanelBody title="Tracking & Status" initialOpen={ false }>
 					<TextControl   label="Google Analytics ID" value={ settings.googleAnalyticsId } onChange={ set( 'googleAnalyticsId' ) } />
 					<ToggleControl label="Maintenance Mode"    checked={ settings.maintenanceMode } onChange={ set( 'maintenanceMode' ) } />
+				</PanelBody>
+				<PanelBody title="Brand" initialOpen={ false }>
+					<BaseControl label="Primary Colour" __nextHasNoMarginBottom={ false }>
+						<div style={ { display: 'flex', alignItems: 'center', gap: '8px', marginTop: '4px' } }>
+							<input
+								type="color"
+								value={ settings.primaryColor }
+								onChange={ ( e ) => set( 'primaryColor' )( e.target.value ) }
+								style={ { width: '40px', height: '32px', padding: '2px', border: '1px solid #949494', borderRadius: '2px', cursor: 'pointer' } }
+							/>
+							<span style={ { fontFamily: 'monospace', fontSize: '13px' } }>{ settings.primaryColor }</span>
+						</div>
+					</BaseControl>
+					<BaseControl label="Accent Colour" __nextHasNoMarginBottom={ false }>
+						<div style={ { display: 'flex', alignItems: 'center', gap: '8px', marginTop: '4px' } }>
+							<input
+								type="color"
+								value={ settings.accentColor }
+								onChange={ ( e ) => set( 'accentColor' )( e.target.value ) }
+								style={ { width: '40px', height: '32px', padding: '2px', border: '1px solid #949494', borderRadius: '2px', cursor: 'pointer' } }
+							/>
+							<span style={ { fontFamily: 'monospace', fontSize: '13px' } }>{ settings.accentColor }</span>
+						</div>
+					</BaseControl>
+					<TextControl
+						label="Font Family"
+						value={ settings.fontFamily }
+						onChange={ set( 'fontFamily' ) }
+						help="CSS font-family name, e.g. Inter or Roboto"
+					/>
+					<TextControl
+						label="Google Fonts URL"
+						value={ settings.googleFontsUrl }
+						onChange={ set( 'googleFontsUrl' ) }
+						help="Paste the full Google Fonts embed URL for the chosen font"
+					/>
 				</PanelBody>
 			</Panel>
 			<Button variant="primary" onClick={ save } isBusy={ saving } disabled={ saving }>
