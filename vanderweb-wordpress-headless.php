@@ -2,7 +2,7 @@
 /**
  * Plugin Name: VanderWeb WordPress Headless
  * Description: Flexible page sections and site settings for headless Nuxt 3 frontend
- * Version: 1.0.1
+ * Version: 1.0.2
  * Author: Ulrik Vander
  * Requires PHP: 8.0
  * License: GPL-2.0-or-later
@@ -21,7 +21,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'VANDER_PLUGIN_VERSION', '1.0.1' );
+define( 'VANDER_PLUGIN_VERSION', '1.0.2' );
 define( 'VANDER_PLUGIN_PATH', plugin_dir_path( __FILE__ ) );
 define( 'VANDER_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 
@@ -56,12 +56,14 @@ function vander_enqueue_editor_assets(): void {
 		true
 	);
 
-	wp_enqueue_style(
-		'vander-gutenberg-style',
-		VANDER_PLUGIN_URL . 'gutenberg/build/index.css',
-		[ 'wp-components' ],
-		$asset['version']
-	);
+	if ( file_exists( VANDER_PLUGIN_PATH . 'gutenberg/build/index.css' ) ) {
+		wp_enqueue_style(
+			'vander-gutenberg-style',
+			VANDER_PLUGIN_URL . 'gutenberg/build/index.css',
+			[ 'wp-components' ],
+			$asset['version']
+		);
+	}
 
 	wp_localize_script(
 		'vander-gutenberg',

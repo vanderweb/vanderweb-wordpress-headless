@@ -6,9 +6,32 @@ This plugin converts WordPress into a headless CMS backend for a Nuxt 3 frontend
 
 - Adds a **Page Sections** sidebar panel in the Gutenberg editor, letting editors compose pages from typed, structured content blocks
 - Exposes page sections and global settings (header/footer/general) as clean JSON via the WordPress REST API
-- Provides admin settings pages (General / Header / Footer) built in React, accessible under **Vander Headless** in the WP admin menu
+- Provides admin settings pages (General / Header / Footer) built in React, accessible under **VanderWeb Headless** in the WP admin menu
 
 All React/JSX lives in `gutenberg/src/` and is compiled by `@wordpress/scripts` (webpack) into `gutenberg/build/`.
+
+---
+
+## Live Environment
+
+- WordPress backend: https://headless.vanderweb.dk
+- REST API base: https://headless.vanderweb.dk/wp-json/wp/v2
+
+### Plugins installed on headless.vanderweb.dk
+
+| Plugin | Purpose |
+|--------|---------|
+| CoCart – Headless REST API for WooCommerce | WooCommerce cart/checkout via REST |
+| CoCart CORS Support | CORS headers for CoCart endpoints |
+| Headless by Palasthotel | Restricts REST API to a whitelist of public routes |
+| Redirection | URL redirect management |
+| REST API Featured Image | Adds `featured_media_src_url` field to pages/posts |
+| WooCommerce | E-commerce |
+| WP REST Cache | Transparent REST response caching |
+| WP-REST-API V2 Menus | Exposes nav menus at `/wp-json/menus/v1/menus` |
+| Yoast SEO | Adds `yoast_head_json` to pages/posts |
+
+Note: The Headless plugin blocks most REST routes by default. To expose `/wp-json/menus/v1/menus` or CoCart endpoints publicly, whitelist them in **WP Admin → Headless → allowed endpoints**.
 
 ---
 
@@ -20,6 +43,7 @@ All React/JSX lives in `gutenberg/src/` and is compiled by `@wordpress/scripts` 
 | GET | `/wp-json/vander/v1/settings` | public | Returns `{ general, header, footer }` objects |
 | POST | `/wp-json/vander/v1/settings` | `manage_options` | Saves one or more of `{ general?, header?, footer? }` |
 | GET | `/wp-json/vander/v1/section-types` | public | Returns full section type schema (type, label, fields) |
+| GET | `/wp-json/vander/v1/menus` | `manage_options` | Lists registered WordPress nav menus |
 
 ### Settings response shape
 
@@ -114,7 +138,18 @@ npm run build   # production build → gutenberg/build/
 npm run start   # dev watch mode
 ```
 
-The build output (`gutenberg/build/index.js`, `index.css`, `index.asset.php`) is committed to the repo so the plugin works without a build step on the server.
+The build output (`gutenberg/build/index.js`, `index.asset.php`) is committed to the repo so the plugin works without a build step on the server. `index.css` is only emitted if the source imports CSS — the enqueue is guarded with `file_exists()`.
+
+---
+
+## Building the Plugin Zip
+
+```bash
+cd /path/to/git-projekter
+zip -r vanderweb-wordpress-headless.zip vanderweb-wordpress-headless/ \
+  --exclude "vanderweb-wordpress-headless/gutenberg/node_modules/*" \
+  --exclude "vanderweb-wordpress-headless/.git/*"
+```
 
 ---
 
@@ -125,9 +160,12 @@ vanderweb-wordpress-headless.php      Main plugin bootstrap, asset enqueue
 includes/section-definitions.php     Section type schema (PHP source of truth)
 includes/register-meta.php           post meta + options registration
 includes/rest-api.php                REST routes and page_sections filter
+includes/rest-security.php           REST API access control
+includes/security-helpers.php        Shared security utilities
 admin/admin-menu.php                 WP admin menu + asset enqueue for settings pages
 admin/settings-{general,header,footer}.php  Mount point HTML for React apps
 gutenberg/src/index.js               JS entry — registers plugin panel + mounts admin pages
 gutenberg/src/panels/               React page components
 gutenberg/src/components/           Shared React components (FieldTypes, SectionEditor, SectionList)
+gutenberg/build/                    Compiled output — committed to repo
 ```

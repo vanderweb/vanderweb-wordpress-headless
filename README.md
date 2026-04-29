@@ -9,8 +9,15 @@ WordPress plugin that converts a WordPress site into a headless CMS backend for 
 | Repo | Purpose |
 |---|---|
 | `vanderweb/vanderweb-wordpress-headless` | This plugin — install on every WordPress site |
-| `vanderweb/vander-frontend` | Nuxt 3 frontend — clone per site, edit `site.config.json` |
+| `vanderweb/vander-frontend` | Nuxt 3 frontend — clone per site |
 | `vanderweb/wp-nuxt-core` | Shared Nuxt composables and TypeScript types |
+
+---
+
+## Live environment
+
+- WordPress backend: https://headless.vanderweb.dk
+- REST API base: https://headless.vanderweb.dk/wp-json/wp/v2
 
 ---
 
@@ -18,15 +25,12 @@ WordPress plugin that converts a WordPress site into a headless CMS backend for 
 
 ### 1. WordPress plugin
 
-Download the latest zip from the [releases page](https://github.com/vanderweb/vanderweb-wordpress-headless/releases) or build it locally (see below).
-
-In WordPress admin: **Plugins → Add New → Upload Plugin** → activate.
+Build the zip (see below) or grab it from the repo root, then in WordPress admin: **Plugins → Add New → Upload Plugin** → activate.
 
 Add the following to `wp-config.php` **before** `require_once ABSPATH . 'wp-settings.php'`:
 
 ```php
-// Vander Headless — allowed CORS origins for the Nuxt frontend.
-// Comma-separated. Include all environments that need to call the REST API.
+// Allowed CORS origins for the Nuxt frontend (comma-separated).
 define( 'VANDER_CORS_ORIGINS', 'https://newsite.com,https://www.newsite.com,http://localhost:3000' );
 
 // Recommended hardening constants.
@@ -40,24 +44,11 @@ define( 'FORCE_SSL_ADMIN', true );
 ```bash
 git clone git@github.com:vanderweb/vander-frontend.git my-project
 cd my-project
+cp .env.example .env
+# set WP_API_BASE=https://newsite.com in .env
 npm install
-```
-
-Edit `site.config.json` in the project root:
-
-```json
-{
-  "wpApiBase": "https://newsite.com"
-}
-```
-
-That is the only file that needs to change per site. Run the dev server:
-
-```bash
 npm run dev
 ```
-
-> **CI/CD override:** Set the `WP_API_BASE` environment variable to override `site.config.json` without committing changes (useful for staging vs production pipelines).
 
 ---
 
@@ -77,17 +68,17 @@ All other REST endpoints are blocked for unauthenticated requests. See [SECURITY
 
 ## Admin settings
 
-Under **Vander Headless** in the WordPress admin menu:
+Under **VanderWeb Headless** in the WordPress admin menu:
 
-- **General Settings** — site name, logo, favicon, Google Analytics ID, maintenance mode
-- **Header Settings** — logo, navigation (select a WordPress menu or enter links manually), CTA button, sticky/transparent behaviour
+- **General Settings** — site name, logo, favicon, Google Analytics ID, maintenance mode, brand colours and fonts
+- **Header Settings** — logo, navigation links, CTA button, sticky/transparent behaviour
 - **Footer Settings** — logo, tagline, columns with links, social links, bottom text
 
 ---
 
 ## Page sections
 
-Open any page in the Gutenberg editor. The **Page Sections** panel appears in the right sidebar under the **Side** tab. Use it to compose pages from typed content blocks instead of writing HTML.
+Open any page in the Gutenberg editor. The **Page Sections** panel appears in the right sidebar (open by default). Use it to compose pages from typed content blocks.
 
 Available section types:
 
@@ -102,7 +93,7 @@ Available section types:
 | Text + Image | heading, text, image, layout (image left/right) |
 | Free Text | heading, content, centered toggle |
 
-Image fields resolve to `{ id, url, alt }` objects server-side. Case post IDs resolve to `{ id, slug, title, excerpt, thumbnail_url }`. The Nuxt frontend receives fully-enriched data — no additional API calls needed.
+Image fields resolve to `{ id, url, alt }` objects server-side. Case post IDs resolve to `{ id, slug, title, excerpt, thumbnail_url }`. The frontend receives fully-enriched data — no additional API calls needed.
 
 ### Adding a new section type
 
@@ -124,7 +115,7 @@ Image fields resolve to `{ id, url, alt }` objects server-side. Case post IDs re
 
 ---
 
-## Building the JS bundle locally
+## Building the JS bundle
 
 Required only when modifying the React admin pages or Gutenberg panel. The compiled output is committed to the repo so the plugin works without a build step on the server.
 
@@ -139,31 +130,16 @@ npm run start    # dev watch mode
 
 ## Building the plugin zip
 
-Run from the repo root on Windows:
+Run from the repo root:
 
-```powershell
-Add-Type -Assembly 'System.IO.Compression.FileSystem'
-$pluginDir = 'C:\path\to\vanderweb-wordpress-headless'
-$zipPath   = 'C:\vanderweb-wordpress-headless.zip'
-if (Test-Path $zipPath) { Remove-Item $zipPath -Force }
-$zip = [System.IO.Compression.ZipFile]::Open($zipPath, 'Create')
-$files = Get-ChildItem -Path $pluginDir -Recurse -File | Where-Object {
-    $rel = $_.FullName.Substring($pluginDir.Length + 1)
-    $rel -notmatch '^vendor\\' -and $rel -notmatch '^gutenberg\\node_modules\\' -and
-    $rel -notmatch '\.mo$' -and $rel -notmatch '^\.git\\'
-}
-foreach ($file in $files) {
-    $rel = $file.FullName.Substring($pluginDir.Length + 1)
-    $entry = 'vanderweb-wordpress-headless/' + $rel.Replace('\', '/')
-    [System.IO.Compression.ZipFileExtensions]::CreateEntryFromFile(
-        $zip, $file.FullName, $entry,
-        [System.IO.Compression.CompressionLevel]::Optimal
-    ) | Out-Null
-}
-$zip.Dispose()
+```bash
+cd /path/to/git-projekter
+zip -r vanderweb-wordpress-headless.zip vanderweb-wordpress-headless/ \
+  --exclude "vanderweb-wordpress-headless/gutenberg/node_modules/*" \
+  --exclude "vanderweb-wordpress-headless/.git/*"
 ```
 
-The zip uses forward-slash entry paths, ensuring correct extraction on Linux servers.
+The zip is created in the parent directory (`git-projekter/vanderweb-wordpress-headless.zip`).
 
 ---
 
