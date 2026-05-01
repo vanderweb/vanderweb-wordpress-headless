@@ -71,8 +71,8 @@ All other REST endpoints are blocked for unauthenticated requests. See [SECURITY
 Under **VanderWeb Headless** in the WordPress admin menu:
 
 - **General Settings** — site name, logo, favicon, Google Analytics ID, maintenance mode, brand colours and fonts
-- **Header Settings** — logo, navigation links, CTA button, sticky/transparent behaviour
-- **Footer Settings** — logo, tagline, columns with links, social links, bottom text
+- **Header Settings** — logo, navigation links, CTA button, announcement bar, sticky/transparent behaviour
+- **Footer Settings** — logo, tagline, contact info (address, phone, email), columns with links, social links, bottom text
 
 ---
 
@@ -84,7 +84,7 @@ Available section types:
 
 | Type | Fields |
 |---|---|
-| Hero | heading, subheading, CTA, background image, overlay opacity |
+| Hero | heading, subheading, CTA (primary + secondary), image, overlay opacity, layout (split / fullbleed / headline) |
 | Services | heading, subheading, repeatable items (title, icon, text) |
 | Cases | heading, subheading, repeatable case post IDs |
 | About | heading, text, image, CTA |
@@ -92,6 +92,11 @@ Available section types:
 | Contact | heading, subheading, email, phone, show form toggle |
 | Text + Image | heading, text, image, layout (image left/right) |
 | Free Text | heading, content, centered toggle |
+| Team | heading, subheading, repeatable members (name, role, bio, photo) |
+| FAQ | heading, subheading, repeatable items (question, answer) |
+| CTA Banner | heading, subheading, CTA, dark background toggle |
+| Featured Products | heading, subheading, all-products CTA, repeatable products (title, price, url, image) |
+| Categories Grid | heading, layout (2×2 / 4 columns), repeatable categories (name, url, image) |
 
 Image fields resolve to `{ id, url, alt }` objects server-side. Case post IDs resolve to `{ id, slug, title, excerpt, thumbnail_url }`. The frontend receives fully-enriched data — no additional API calls needed.
 
@@ -100,11 +105,12 @@ Image fields resolve to `{ id, url, alt }` objects server-side. Case post IDs re
 1. Open `includes/section-definitions.php`
 2. Add an entry to the array returned by `vander_get_section_types()`
 3. The Gutenberg panel and REST endpoint pick it up automatically
+4. Add a matching `Section<TypeName>.vue` component in `vander-frontend/components/sections/`
 
 ```php
 [
-    'type'   => 'cta_banner',
-    'label'  => 'CTA Banner',
+    'type'   => 'my_block',
+    'label'  => 'My Block',
     'fields' => [
         [ 'key' => 'heading',   'label' => 'Heading',   'type' => 'text' ],
         [ 'key' => 'cta_label', 'label' => 'CTA Label', 'type' => 'text' ],
