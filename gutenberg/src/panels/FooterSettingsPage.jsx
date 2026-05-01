@@ -3,12 +3,15 @@ import apiFetch from '@wordpress/api-fetch';
 import { TextControl, SelectControl, Button, Notice, Panel, PanelBody } from '@wordpress/components';
 
 const DEFAULTS = {
-	logoUrl:     '',
-	logoAlt:     '',
-	tagline:     '',
-	columns:     [],
-	bottomText:  '',
-	socialLinks: [],
+	logoUrl:      '',
+	logoAlt:      '',
+	tagline:      '',
+	address:      '',
+	contactPhone: '',
+	contactEmail: '',
+	columns:      [],
+	bottomText:   '',
+	socialLinks:  [],
 };
 
 const PLATFORM_OPTIONS = [
@@ -107,10 +110,16 @@ export default function FooterSettingsPage() {
 			) }
 			<Panel>
 				<PanelBody title="Branding" initialOpen>
-					<TextControl label="Logo URL"   value={ settings.logoUrl }    onChange={ set( 'logoUrl' ) } />
-					<TextControl label="Logo Alt"   value={ settings.logoAlt }    onChange={ set( 'logoAlt' ) } />
-					<TextControl label="Tagline"    value={ settings.tagline }    onChange={ set( 'tagline' ) } />
+					<TextControl label="Logo URL"    value={ settings.logoUrl }    onChange={ set( 'logoUrl' ) } />
+					<TextControl label="Logo Alt"    value={ settings.logoAlt }    onChange={ set( 'logoAlt' ) } />
+					<TextControl label="Tagline"     value={ settings.tagline }    onChange={ set( 'tagline' ) } />
 					<TextControl label="Bottom Text" value={ settings.bottomText } onChange={ set( 'bottomText' ) } />
+				</PanelBody>
+
+				<PanelBody title="Contact Info" initialOpen={ false }>
+					<TextControl label="Address"       value={ settings.address }      onChange={ set( 'address' ) }      help="Shown in the footer's brand column." />
+					<TextControl label="Phone"         value={ settings.contactPhone } onChange={ set( 'contactPhone' ) } />
+					<TextControl label="Email"         value={ settings.contactEmail } onChange={ set( 'contactEmail' ) } />
 				</PanelBody>
 
 				<PanelBody title="Social Links" initialOpen={ false }>

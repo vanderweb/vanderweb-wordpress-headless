@@ -11,6 +11,8 @@ const DEFAULTS = {
 	ctaUrl:            '',
 	stickyHeader:      false,
 	transparentHeader: false,
+	showAnnouncement:  false,
+	announcementText:  '',
 };
 
 const EMPTY_NAV_LINK = { label: '', url: '', target: false };
@@ -126,6 +128,18 @@ export default function HeaderSettingsPage() {
 				<PanelBody title="CTA Button" initialOpen={ false }>
 					<TextControl label="CTA Label" value={ settings.ctaLabel } onChange={ set( 'ctaLabel' ) } />
 					<TextControl label="CTA URL"   value={ settings.ctaUrl }   onChange={ set( 'ctaUrl' ) } />
+				</PanelBody>
+
+				<PanelBody title="Announcement Bar" initialOpen={ false }>
+					<ToggleControl label="Show Announcement Bar" checked={ settings.showAnnouncement } onChange={ set( 'showAnnouncement' ) } />
+					{ settings.showAnnouncement && (
+						<TextControl
+							label="Announcement Text"
+							value={ settings.announcementText }
+							onChange={ set( 'announcementText' ) }
+							help="Displayed as a slim bar above the header."
+						/>
+					) }
 				</PanelBody>
 
 				<PanelBody title="Behavior" initialOpen={ false }>
